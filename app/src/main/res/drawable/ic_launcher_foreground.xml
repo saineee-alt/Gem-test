@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer ambient glow around the dynamic island -->
+    <path
+        android:fillColor="#1538BDF8"
+        android:pathData="M34,36 L74,36 A18,18 0 0 1 92,54 A18,18 0 0 1 74,72 L34,72 A18,18 0 0 1 16,54 A18,18 0 0 1 34,36 Z" />
+    
+    <!-- Main dynamic island capsule pill -->
+    <path
+        android:fillColor="#0D1117"
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="1.5"
+        android:pathData="M36,40 L72,40 A14,14 0 0 1 86,54 A14,14 0 0 1 72,68 L36,68 A14,14 0 0 1 22,54 A14,14 0 0 1 36,40 Z" />
+
+    <!-- Front camera punch hole -->
+    <path
+        android:fillColor="#1F2937"
+        android:strokeColor="#374151"
+        android:strokeWidth="1"
+        android:pathData="M34,54 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+
+    <!-- Camera lens optical reflection -->
+    <path
+        android:fillColor="#60A5FA"
+        android:pathData="M32.5,52.5 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+
+    <!-- Glowing notification / live telemetry dot -->
+    <path
+        android:fillColor="#34D399"
+        android:pathData="M46,54 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+
+    <!-- Equalizer / activity sound waves on the right -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M56,48 h3 v12 h-3 z" />
+    <path
+        android:fillColor="#818CF8"
+        android:pathData="M63,44 h3 v20 h-3 z" />
+    <path
+        android:fillColor="#A78BFA"
+        android:pathData="M70,47 h3 v14 h-3 z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M77,50 h3 v8 h-3 z" />
+</vector>

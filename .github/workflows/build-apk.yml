@@ -1,0 +1,93 @@
+name: Build APKs
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Select build type to produce'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'debug'
+          - 'release'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build APK (${{ inputs.build_type }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Prepare Keystores
+        run: |
+          # 1. Restore debug keystore from base64 if present, or generate fresh debug key
+          if [ -f "debug.keystore.base64" ]; then
+            echo "Restoring debug.keystore from debug.keystore.base64..."
+            base64 -d debug.keystore.base64 > debug.keystore
+          elif [ ! -f "debug.keystore" ]; then
+            echo "Generating fallback debug.keystore..."
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+          # 2. Configure release keystore
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "Decoding release keystore from secrets.KEYSTORE_BASE64..."
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > my-upload-key.jks
+            echo "KEYSTORE_PATH=${GITHUB_WORKSPACE}/my-upload-key.jks" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          else
+            echo "No custom release keystore secret found. Generating temporary signing key for CI build..."
+            keytool -genkeypair -v -keystore my-upload-key.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass "android" -keypass "android" -dname "CN=Islet,O=Islet,C=US"
+            echo "KEYSTORE_PATH=${GITHUB_WORKSPACE}/my-upload-key.jks" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=android" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=android" >> $GITHUB_ENV
+          fi
+
+      - name: Make Gradlew Executable
+        run: chmod +x ./gradlew
+
+      - name: Build Debug APK
+        if: ${{ inputs.build_type == 'all' || inputs.build_type == 'debug' }}
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Build Release APK
+        if: ${{ inputs.build_type == 'all' || inputs.build_type == 'release' }}
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Upload Debug APK
+        if: ${{ inputs.build_type == 'all' || inputs.build_type == 'debug' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: islet-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Release APK
+        if: ${{ inputs.build_type == 'all' || inputs.build_type == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: islet-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
